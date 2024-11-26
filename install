@@ -1,3 +1,179 @@
-Installing OpenStack-Ansible manually on Ubuntu involves multiple detailed steps. Below is a full manual guide to set up OpenStack-Ansible, step by step.
-Update and Upgrade the System
-sudo apt update && sudo apt upgrade -y
+
+# Installing OpenStack-Ansible manually on Ubuntu, step by step.
+
+## Step 1: Prepare the System
+
+**1. Update and Upgrade the System**
+
+`sudo apt update && sudo apt upgrade -y`
+
+**2. Set a Static IP Address**
+Ensure your primary network interface has a static IP. Edit the Netplan configuration:
+
+`sudo nano /etc/netplan/01-netcfg.yaml`
+
+Example configuration:
+
+> network:
+>   version: 2
+>   ethernets:
+>     ens33:
+>       addresses:
+>         - 192.168.1.10/24
+>       gateway4: 192.168.1.1
+>       nameservers:
+>         addresses:
+>           - 8.8.8.8
+>           - 8.8.4.4
+
+
+Apply the configuration:
+
+`sudo netplan apply`
+
+**3. Set Hostname and Configure DNS**
+
+Set a hostname:
+
+`sudo hostnamectl set-hostname openstack-ansible`
+
+_Update /etc/hosts to map your hostname:_
+
+`sudo nano /etc/hosts`
+
+Add:
+
+`192.168.1.10 openstack-ansible`
+
+## Step 2: Install Required Dependencies
+**1. Install Basic Packages**
+
+`sudo apt install -y python3-pip git bridge-utils software-properties-common curl`
+
+**2. Install Ansible**
+
+`sudo apt-add-repository --yes --update ppa:ansible/ansible`
+
+`sudo apt install -y ansible`
+
+## **3. Configure SSH**
+Set up SSH key-based authentication for root and all target nodes:
+
+`ssh-keygen -t rsa -b 4096`
+`ssh-copy-id root@<node-ip>`
+
+## Step 3: Download and Configure OpenStack-Ansible
+
+**1. Clone the OpenStack-Ansible Repository**
+
+`sudo git clone https://opendev.org/openstack/openstack-ansible /opt/openstack-ansible`
+
+`cd /opt/openstack-ansible`
+
+**2. Check Out a Stable Branch**
+Switch to a specific version (e.g., Yoga):
+
+**git checkout stable/2023.2**
+
+## Step 4: Bootstrap the Environment
+
+**1. Run the Bootstrap Script**
+This installs essential Python dependencies:
+
+`sudo scripts/bootstrap-ansible.sh`
+
+## 2. Bootstrap the APT Repository
+
+If this is an all-in-one deployment, run:
+
+`sudo scripts/bootstrap-aio.sh`
+
+## Step 5: Configure OpenStack-Ansible
+
+**1. Copy Configuration Files**
+
+`sudo cp -R /opt/openstack-ansible/etc/openstack_deploy /etc/openstack_deploy`
+
+**2. Set Passwords**
+
+Generate secure passwords for OpenStack services:
+
+`sudo scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml`
+
+**3. Configure Inventory**
+
+Edit /etc/openstack_deploy/openstack_user_config.yml to define your deployment:
+
+`sudo nano /etc/openstack_deploy/openstack_user_config.yml`
+
+Example configuration:
+
+> yaml
+> Copy code
+> cidr_networks:
+>   container: 172.29.236.0/22
+>   tunnel: 172.29.240.0/22
+>   storage: 172.29.244.0/22
+
+> used_ips:
+>   - "172.29.236.1,172.29.236.50"
+
+## Step 6: Deploy OpenStack-Ansible
+
+**1. Prepare Hosts**
+Prepare your hosts for OpenStack deployment:
+
+openstack-ansible setup-hosts.yml
+
+
+**2. Deploy Infrastructure Services**
+
+Install and configure RabbitMQ, MariaDB, Memcached, etc.:
+
+openstack-ansible setup-infrastructure.yml
+
+
+## 3. Deploy OpenStack Services
+
+Deploy OpenStack components like Keystone, Nova, Neutron, etc.:
+
+openstack-ansible setup-openstack.yml
+
+
+## Step 7: Verify the Deployment
+
+**1. Access Horizon Dashboard**
+
+Open a browser and navigate to:
+
+http://172.29.50.80/horizon
+
+Login with the credentials specified in user_secrets.yml.
+
+**2. Verify OpenStack Services**
+Source the admin credentials and check services:
+
+`source /etc/openstack_deploy/admin-openrc`
+
+`openstack service list`
+
+## Step 8: Post-Deployment Configuration
+
+**1. Configure Networking**
+
+Ensure OpenStack networking is correctly configured (e.g., floating IPs, private networks).
+
+**2. Add Compute Nodes**
+
+To add compute nodes, update /etc/openstack_deploy/openstack_user_config.yml and re-run:
+
+`openstack-ansible setup-hosts.yml`
+`openstack-ansible setup-infrastructure.yml`
+`openstack-ansible setup-openstack.yml`
+
+## Troubleshooting
+
+* Log Files: Check logs in **/var/log/openstack-ansible/** for troubleshooting.
+* Networking Issues: Ensure all nodes can communicate over the management network.
+
+
