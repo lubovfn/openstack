@@ -54,10 +54,13 @@ Additional components ensure physical reliability and operational continuity.
 * Deploy three controller nodes for redundancy.
 * Use HAProxy to balance API requests across nodes.
 * Utilize Distributed Virtual Routing (DVR) for resilient Neutron routing.
+* 
 **2. Key Features**
+  
 * Database Replication: Use MariaDB Galera Cluster for high availability of OpenStack databases.
 * Message Queue Redundancy: Configure RabbitMQ with clustering to avoid service disruptions.
 **3. Security Measures**
+  
 * Enable TLS Encryption for API endpoints.
 * Use VXLAN with IPsec to secure tenant traffic.
 * Implement port security to prevent spoofing.
