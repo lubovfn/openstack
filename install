@@ -1,0 +1,3 @@
+Installing OpenStack-Ansible manually on Ubuntu involves multiple detailed steps. Below is a full manual guide to set up OpenStack-Ansible, step by step.
+Update and Upgrade the System
+sudo apt update && sudo apt upgrade -y
