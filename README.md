@@ -59,6 +59,7 @@ Additional components ensure physical reliability and operational continuity.
   
 * Database Replication: Use MariaDB Galera Cluster for high availability of OpenStack databases.
 * Message Queue Redundancy: Configure RabbitMQ with clustering to avoid service disruptions.
+* 
 **3. Security Measures**
   
 * Enable TLS Encryption for API endpoints.
